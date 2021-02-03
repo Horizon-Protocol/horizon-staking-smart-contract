@@ -33,5 +33,18 @@ interface IStakingRewards {
     function setRewardsDuration(uint256 _rewardsDuration) external;
     
     function setLockDownDuration(uint256 _lockdownDuration) external ;
+    
+    function rewardsDistribution() external view returns(address);
+    
+    function rewardsDuration() external view returns(uint256);
+    
+    function lockDownDuration() external view returns(uint256);
 
+    function setWithdrawRate(uint256 _rate) external ;
+
+    function withdrawRate() external view returns(uint256);
+
+    function setFeeCollector(address _feeCollector) external; 
+
+    function feeCollector() external view returns(address);
 }
