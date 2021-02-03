@@ -24,14 +24,21 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     // uint256 public rewardsDuration = 7 days;
-    uint256 public rewardsDuration = 300 seconds;
+    uint256 public rewardsDuration = 5 seconds;
 
     //lock duration
     // uint256 public lockDownDuration = 30 days;
-    uint256 public lockDownDuration = 300 seconds;
+    uint256 public lockDownDuration = 5 seconds;
 
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
+
+    //withdraw rate 5 for 0.05% 
+    uint256 public withdrawRate = 0;
+    uint256 public feeScale = 10000;
+
+    //NOTE:modify me before mainnet
+    address public feeCollector =0x26356Cb66F8fd62c03F569EC3691B6F00173EB02;
 
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
@@ -107,6 +114,15 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
+    function setWithdrawRate(uint256 _rate) external onlyOwner {
+        require(_rate < 10000,"withdraw rate is too high");
+        withdrawRate = _rate;
+    }
+
+    function setFeeCollector(address _feeCollector) external onlyOwner{
+        feeCollector = _feeCollector;
+    }
+
     function stake(uint256 amount) external nonReentrant notPaused updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
@@ -148,8 +164,12 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
         require(withdrawableAmount(msg.sender) >= amount,"not enough withdrawable balance");
         dealwithLockdown(amount,msg.sender);
-        stakingToken.safeTransfer(msg.sender, amount);
-        emit Withdrawn(msg.sender, amount);
+        uint256 fee = amount.mul(withdrawRate).div(feeScale);
+        stakingToken.safeTransfer(msg.sender, amount.sub(fee));
+        if (fee > 0 ){
+            stakingToken.safeTransfer(feeCollector, fee);
+        }
+        emit Withdrawn(msg.sender, amount.sub(fee));
     }
 
     function getReward() public nonReentrant updateReward(msg.sender) {
