@@ -204,9 +204,9 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
         uint balance = rewardsToken.balanceOf(address(this));
         require(rewardRate <= balance.div(rewardsDuration), "Provided reward too high");
         // for staking token same with reward token casee
-        if(rewardsToken == stakingToken){
-            require(balance - _totalSupply == reward,"reward not same with depoist amount");
-        }
+        // if(rewardsToken == stakingToken){
+        //     require(balance - _totalSupply == reward,"reward not same with depoist amount");
+        // }
        
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(rewardsDuration);
